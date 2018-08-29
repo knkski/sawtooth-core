@@ -123,15 +123,15 @@ fn apply_create_account(
     match load_account(create_account_data.get_customer_id(), context)? {
         Some(_) => {
             warn!("Invalid transaction: during CREATE_ACCOUNT, Customer Name must be set");
-            Err(ApplyError::InvalidTransaction(format!(
-                "Customer Name must be set"
+            Err(ApplyError::InvalidTransaction(String::from(
+                "Customer Name must be set",
             )))
         }
         None => {
             if create_account_data.get_customer_name().is_empty() {
                 warn!("Invalid transaction: during CREATE_ACCOUNT, Customer Name must be set");
-                Err(ApplyError::InvalidTransaction(format!(
-                    "Customer Name must be set"
+                Err(ApplyError::InvalidTransaction(String::from(
+                    "Customer Name must be set",
                 )))
             } else {
                 let mut new_account = Account::new();
@@ -153,8 +153,8 @@ fn apply_deposit_checking(
     match load_account(deposit_checking_data.get_customer_id(), context)? {
         None => {
             warn!("Invalid transaction: during DEPOSIT_CHECKING, Account must exist");
-            Err(ApplyError::InvalidTransaction(format!(
-                "Account must exist"
+            Err(ApplyError::InvalidTransaction(String::from(
+                "Account must exist",
             )))
         }
         Some(mut account) => {
@@ -172,8 +172,8 @@ fn apply_write_check(
     match load_account(write_check_data.get_customer_id(), context)? {
         None => {
             warn!("Invalid transaction: during WRITE_CHECK, Account must exist");
-            Err(ApplyError::InvalidTransaction(format!(
-                "Account must exist"
+            Err(ApplyError::InvalidTransaction(String::from(
+                "Account must exist",
             )))
         }
         Some(mut account) => {
@@ -191,8 +191,8 @@ fn apply_transact_savings(
     match load_account(transact_savings_data.get_customer_id(), context)? {
         None => {
             warn!("Invalid transaction: during TRANSACT_SAVINGS, Account must exist");
-            Err(ApplyError::InvalidTransaction(format!(
-                "Account must exist"
+            Err(ApplyError::InvalidTransaction(String::from(
+                "Account must exist",
             )))
         }
         Some(mut account) => {
@@ -200,8 +200,8 @@ fn apply_transact_savings(
                 && (-transact_savings_data.get_amount() as u32) > account.get_savings_balance()
             {
                 warn!("Invalid transaction: during TRANSACT_SAVINGS, Insufficient funds in source savings account");
-                return Err(ApplyError::InvalidTransaction(format!(
-                    "Insufficient funds in source savings account"
+                return Err(ApplyError::InvalidTransaction(String::from(
+                    "Insufficient funds in source savings account",
                 )));
             }
 
