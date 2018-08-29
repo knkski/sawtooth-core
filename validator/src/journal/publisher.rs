@@ -342,7 +342,7 @@ impl SyncBlockPublisher {
                 Ok(finalize_result) => {
                     state.pending_batches.update(
                         finalize_result.remaining_batches.clone(),
-                        finalize_result.last_batch.clone(),
+                        &finalize_result.last_batch,
                     );
 
                     let previous_block_id = &state
@@ -836,7 +836,7 @@ impl PendingBatchesPool {
         self.gauge.set_value(self.batches.len());
     }
 
-    pub fn update(&mut self, mut still_pending: Vec<Batch>, last_sent: Batch) {
+    pub fn update(&mut self, mut still_pending: Vec<Batch>, last_sent: &Batch) {
         let last_index = self
             .batches
             .iter()
