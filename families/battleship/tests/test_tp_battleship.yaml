@@ -1,0 +1,72 @@
+# Copyright 2017 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ------------------------------------------------------------------------------
+
+version: "2.1"
+
+volumes:
+  cargo-registry:
+  cargo-git:
+
+services:
+
+  battleship-tp:
+    build:
+      context: ../../..
+      dockerfile: ./families/battleship/Dockerfile
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    image: sawtooth-battleship-tp$INSTALL_TYPE:$ISOLATION_ID
+    volumes:
+      - $SAWTOOTH_CORE:/project/sawtooth-core
+      - cargo-registry:/root/.cargo/registry
+      - cargo-git:/root/.cargo/git
+    expose:
+      - 4004
+    command: "bash -c \"\
+             cd families/battleship && \
+             cargo run --bin processor -- -vvvv -C tcp://test-tp-battleship:4004
+             \""
+    stop_signal: SIGKILL
+
+  test-tp-battleship:
+    build:
+      context: ../../..
+      dockerfile: ./families/battleship/tests/battleship-tests.dockerfile
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    image: battleship-tests:$ISOLATION_ID
+    volumes:
+      - $SAWTOOTH_CORE:/project/sawtooth-core
+    command: "bash -c \"
+              nose2-3 \
+              -vvvv \
+              -c /project/sawtooth-core/families/battleship/nose2.cfg \
+              -s /project/sawtooth-core/families/battleship/tests \
+              test_tp_battleship
+              \""
+    expose:
+      - 4004
+    stop_signal: SIGKILL
+    environment:
+        TEST_BIND: "tcp://0.0.0.0:4004"
+        PYTHONPATH: "/project/sawtooth-core/families/battleship:\
+            /project/sawtooth-core/families/battleship/tests:\
+            /project/sawtooth-core/sdk/python:\
+            /project/sawtooth-core/integration:\
+            /project/sawtooth-core/signing"
