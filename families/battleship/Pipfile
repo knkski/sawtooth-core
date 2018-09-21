@@ -4,10 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pyzmq = "*"
 sawtooth-sdk = {editable = true, path = "./../../sdk/python"}
+click = "*"
+requests = "*"
 
 [dev-packages]
+pyzmq = "*"
 black = "==18.6b4"
 
 [requires]

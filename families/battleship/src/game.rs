@@ -88,6 +88,7 @@ pub fn parse_row(row: &str) -> Option<usize> {
 /// and checks it against the hash it received for the space when the player joined the game.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Game {
+    pub name: String,
     #[serde(rename = "State")]
     pub state: String,
     #[serde(rename = "Ships")]
@@ -138,6 +139,7 @@ impl Game {
 impl Default for Game {
     fn default() -> Game {
         Game {
+            name: "NOT SET".into(),
             state: String::from("NEW"),
             ships: vec![],
             player_1: None,
@@ -187,7 +189,7 @@ pub enum Action {
 
 /// A player's game board.
 ///
-/// Stored as a JSON file in `~/.sawtooth/battleship/$GAME-$PLAYER.json`
+/// Stored as a JSON file in `~/.sawtooth/battleship/$PLAYER-$GAME.json`
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Board {
     pub spaces: Vec<Vec<char>>,
@@ -332,6 +334,26 @@ impl Board {
             .iter()
             .map(|ref row| row.iter().collect::<String>())
             .collect::<Vec<_>>()
+            .join("\n")
+    }
+
+    /// Converts the board's spaces to a human-friendly format
+    pub fn render_pretty(spaces: &[Vec<char>], is_target_board: bool) -> String {
+        spaces
+            .iter()
+            .enumerate()
+            .map(|(i, row)| {
+                format!("{}   {}", i, row.iter()
+                    .map(|&ch| {
+
+                        format!("{}  ", match (ch, is_target_board) {
+                            ('?', _) | ('-', _) => ' ',
+                            ('H', _) => 'X',
+                            (other, _) => other,
+                        })
+                    })
+                    .collect::<String>())
+            }).collect::<Vec<_>>()
             .join("\n")
     }
 }

@@ -203,11 +203,11 @@ impl<'a> BattleshipClient<'a> {
             .unwrap()
             .iter()
             .map(|json| {
-                let entry: HashMap<String, Game> =
-                    from_slice(&decode(json["data"].as_str().unwrap()).unwrap()).unwrap();
-                let key = entry.keys().next().unwrap();
-                (key.clone(), entry[key].clone())
-            }).collect())
+                let game: Game = from_slice(&decode(json["data"].as_str().unwrap()).unwrap()).unwrap();
+
+                (game.name.clone(), game)
+            })
+            .collect())
     }
 
     /// Gets a particular game from the list

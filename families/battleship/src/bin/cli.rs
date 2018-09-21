@@ -128,7 +128,7 @@ fn run() -> Result<(), Error> {
             let game = games
                 .get(name)
                 .ok_or_else(|| format_err!("Couldn't get game `{}`!", name))?;
-            let board = Board::load_or_generate(format!("{}-{}", name, key), &game.ships)?;
+            let board = Board::load_or_generate(format!("{}-{}", key, name), &game.ships)?;
 
             let link = client.join(name, board.render_hashed())?;
 
@@ -150,7 +150,7 @@ fn run() -> Result<(), Error> {
             let wait = parse_wait_flag(fire_matches)?;
 
             let game = client.get_game(&name)?;
-            let board = Board::load_or_generate(format!("{}-{}", name, key), &game.ships)?;
+            let board = Board::load_or_generate(format!("{}-{}", key, name), &game.ships)?;
             let (reveal_space, reveal_nonce) = game.get_last_fire_row_col(&board)?;
 
             let link = client.fire(name, row, col, reveal_space, reveal_nonce)?;
@@ -192,19 +192,8 @@ fn run() -> Result<(), Error> {
             let game = games
                 .get(name)
                 .ok_or_else(|| format_err!("Couldn't get game `{}`!", name))?;
-            let board = Board::load(&format!("{}-{}", name, key)).ok();
+            let board = Board::load(&format!("{}-{}", key, name));
             let pub_key = client.pub_key()?;
-
-            fn board_to_str(board: &[Vec<char>]) -> String {
-                board
-                    .iter()
-                    .map(|row| {
-                        row.iter()
-                            .map(|&i| if i == '?' { '.' } else { i })
-                            .collect::<String>()
-                    }).collect::<Vec<_>>()
-                    .join("\n")
-            }
 
             // Shows your board, but with any hits and misses overlaid
             fn overlay_boards(board1: &[Vec<char>], board2: &[Vec<char>]) -> Vec<Vec<char>> {
@@ -219,21 +208,22 @@ fn run() -> Result<(), Error> {
                     }).collect()
             }
 
-            println!("Game State:\n{}\n", game.state);
+            println!("GAME      : {}", name);
             println!(
-                "Player #1: {}",
+                "Player 1  : {}",
                 game.player_1
                     .clone()
                     .or_else(|| Some("<none>".into()))
                     .unwrap()
             );
             println!(
-                "Player #2: {}\n",
+                "Player 2  : {}",
                 game.player_2
                     .clone()
                     .or_else(|| Some("<none>".into()))
                     .unwrap()
             );
+            println!("STATE     : {}\n", game.state);
 
             match (
                 game.player_1 == Some(pub_key.clone()),
@@ -242,25 +232,29 @@ fn run() -> Result<(), Error> {
             ) {
                 (true, true, _) => Err(format_err!("You can't play with yourself!"))?,
                 (false, false, _) => {
-                    println!("Board #1:\n{}\n", board_to_str(&game.target_board_1));
-                    println!("Board #2:\n{}", board_to_str(&game.target_board_2));
+                    println!("Board #1:\n{}\n", Board::render_pretty(&game.target_board_1, false));
+                    println!("Board #2:\n{}", Board::render_pretty(&game.target_board_2, false));
                 }
-                (true, false, Some(b)) => {
-                    println!(
-                        "Your Board:\n{}\n",
-                        board_to_str(&overlay_boards(&b.spaces, &game.target_board_1))
-                    );
-                    println!("Opponent's Board:\n{}", board_to_str(&game.target_board_2));
+                (true, false, Ok(b)) => {
+                    println!("  Target Board");
+                    println!("{}", "-".repeat(33));
+                    println!("{}", Board::render_pretty(&game.target_board_2, true));
+                    println!("  Secret Board");
+                    println!("{}", "-".repeat(33));
+                    println!("{}", Board::render_pretty(&overlay_boards(&b.spaces, &game.target_board_1), false));
                 }
-                (false, true, Some(b)) => {
-                    println!(
-                        "Your Board:\n{}\n",
-                        board_to_str(&overlay_boards(&b.spaces, &game.target_board_2))
-                    );
-                    println!("Opponent's Board:\n{}", board_to_str(&game.target_board_1));
+                (false, true, Ok(b)) => {
+                    println!("  Target Board");
+                    println!("{}", "-".repeat(33));
+                    println!("  {}", (1..11).map(|i| format!("  {}", i)).collect::<String>());
+                    println!("{}", Board::render_pretty(&game.target_board_1, true));
+                    println!("  Secret Board");
+                    println!("{}", "-".repeat(33));
+                    println!("  {}", (1..11).map(|i| format!("  {}", i)).collect::<String>());
+                    println!("{}", Board::render_pretty(&overlay_boards(&b.spaces, &game.target_board_2), false));
                 }
-                (true, false, None) | (false, true, None) => {
-                    println!("Couldn't load board for `{}`!", key);
+                (true, false, Err(err)) | (false, true, Err(err)) => {
+                    println!("Couldn't load board for `{}`: {}", key, err);
                 }
             }
         }

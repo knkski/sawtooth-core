@@ -112,6 +112,7 @@ impl BattleshipTransactionHandler {
             context,
             name,
             &game::Game {
+                name: name.into(),
                 ships,
                 ..Default::default()
             },
