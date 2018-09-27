@@ -16,6 +16,8 @@
  */
 
 extern crate crypto;
+#[macro_use]
+extern crate failure;
 extern crate hex;
 extern crate libc;
 #[macro_use]
@@ -33,3 +35,4 @@ pub mod messages;
 pub mod messaging;
 pub mod processor;
 pub mod signing;
+pub mod transaction_builder;
