@@ -40,6 +40,7 @@ pub type BlockId = Vec<u8>;
 
 /// All information about a block that is relevant to consensus
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
 pub struct Block {
     pub block_id: BlockId,
     pub previous_id: BlockId,

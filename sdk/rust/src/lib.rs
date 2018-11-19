@@ -25,6 +25,9 @@ extern crate openssl;
 extern crate protobuf;
 extern crate rand;
 extern crate secp256k1;
+#[cfg(feature = "with-serde")]
+#[macro_use]
+extern crate serde_derive;
 extern crate uuid;
 extern crate zmq;
 
